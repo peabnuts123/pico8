@@ -1,4 +1,4 @@
-# PICO8
+# PICO-8
 This repo contains all my pico8 codes that aren't standalone projects. It's a sandbox project for experimenting and sharing code.
 
 This repo excludes all files that might contain sensitive data e.g. config.txt. This means this repo is not 100% portable. It will work fine, but it might reset some settings on a fresh clone.
