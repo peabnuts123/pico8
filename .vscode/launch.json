@@ -1,0 +1,32 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "envFile": "${workspaceFolder}/.env",
+      "name": "Launch PICO-8",
+      "request": "launch",
+      "type": "coreclr",
+      "program": "cmd.exe",
+      "args": [
+        "/c",
+        "%PICO8_ROOT%\\pico8.exe", "-home", "."
+      ],
+      "cwd": "${workspaceFolder}",
+    },
+    {
+      "envFile": "${workspaceFolder}/.env",
+      "name": "Run dungeon.p8",
+      "request": "launch",
+      "type": "coreclr",
+      "program": "cmd.exe",
+      "args": [
+        "/c",
+        "%PICO8_ROOT%\\pico8.exe -home . -run .\\carts\\dungeon\\dungeon.p8",
+      ],
+      "cwd": "${workspaceFolder}",
+    },
+  ]
+}

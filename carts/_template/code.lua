@@ -1,0 +1,1 @@
+-- A template for creating new cartridges without having to open the pico8 editor

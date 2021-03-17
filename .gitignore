@@ -1,0 +1,7 @@
+_pico8
+.env
+carts/demos/
+backup/
+activity_log.txt
+config.txt
+log.txt
