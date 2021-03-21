@@ -20,4 +20,24 @@
     ">><=",
   ],
   "Lua.runtime.unicodeName": true,
+  "Lua.diagnostics.disable": [
+    "lowercase-global"
+  ],
+  "Lua.runtime.builtin": {
+    "io": "disable",
+    "basic": "disable",
+    "bit": "disable",
+    "bit32": "disable",
+    "builtin": "default",
+    "coroutine": "disable",
+    "debug": "disable",
+    "ffi": "disable",
+    "jit": "disable",
+    "math": "disable",
+    "os": "disable",
+    "package": "disable",
+    "string": "disable",
+    "table": "disable",
+    "utf8": "disable",
+  }
 }
