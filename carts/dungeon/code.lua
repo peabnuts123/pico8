@@ -19,12 +19,16 @@ local COLOR = {
 }
 
 -- Config
-local area_width = 300
+local area_width = 1000
 local area_height = 300
 local grid_size = 30
 local camera_speed = 2
-local num_points = 25
+local num_points = 50
 local point_dead_zone = 40
+local cave_lerp_interval = 20
+local cave_size = 20
+local cave_max_wander_fluctuation = 10
+local cave_max_size_fluctuation = 10
 
 -- State
 local camera_x = 0
@@ -205,6 +209,32 @@ function _draw()
 
   camera(camera_x, camera_y)
 
+  -- fill area with "dirt"
+  fillp(0x5A5C)
+  rectfill(0, 0, area_width, area_height, COLOR.BROWN)
+  fillp()
+
+  -- carve out "caves"
+  local old_srand = rnd()
+  srand(42)
+  for connection in all(point_connections) do
+    -- manually draw at start / end
+    circfill(connection.a.x, connection.a.y, cave_size, COLOR.BLACK)
+    circfill(connection.b.x, connection.b.y, cave_size, COLOR.BLACK)
+
+    local connection_vector = vec2(connection.b.x - connection.a.x, connection.b.y - connection.a.y)
+    local connection_length = vec2_length(connection_vector)
+    -- draw circles at regular intervals along the connection
+    for i=cave_lerp_interval,connection_length,cave_lerp_interval do
+      local p = vec2(
+        connection.a.x + (connection_vector.x * (i / connection_length)) + rnd(cave_max_wander_fluctuation),
+        connection.a.y + (connection_vector.y * (i / connection_length)) + rnd(cave_max_wander_fluctuation)
+      )
+      circfill(p.x, p.y, cave_size + rnd(cave_max_size_fluctuation), COLOR.BLACK)
+    end
+  end
+  srand(old_srand)
+
   -- draw background grid
   for x=0,area_width,grid_size do
     line(x, 0, x, area_height, COLOR.DARK_GREY)
@@ -212,18 +242,16 @@ function _draw()
   for y=0,area_height,grid_size do
     line(0, y, area_width, y)
   end
-
-  -- draw area outline
   rect(0, 0, area_width, area_height, COLOR.RED)
 
   -- draw point connections
-  for connection in all(point_connections) do
-    line(connection.a.x, connection.a.y, connection.b.x, connection.b.y, COLOR.LIGHT_GREY)
-  end
-  -- draw points
-  for p in all(points) do
-    circ(p.x, p.y, 2, COLOR.RED)
-  end
+  -- for connection in all(point_connections) do
+  --   line(connection.a.x, connection.a.y, connection.b.x, connection.b.y, COLOR.LIGHT_GREY)
+  -- end
+  -- -- draw points
+  -- for p in all(points) do
+  --   circ(p.x, p.y, 2, COLOR.RED)
+  -- end
 
   -- draw ui
   camera() -- unset camera offset
