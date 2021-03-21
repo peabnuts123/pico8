@@ -23,15 +23,14 @@ local area_width = 300
 local area_height = 300
 local grid_size = 30
 local camera_speed = 2
-local num_points = 50
-local point_dead_zone = 20
-local max_point_speed = 1
+local num_points = 25
+local point_dead_zone = 40
 
 -- State
 local camera_x = 0
 local camera_y = 0
 local points = {}
-local point_vectors = {}
+local point_connections = {}
 
 -- Functions
 function vec2(x, y)
@@ -62,9 +61,9 @@ function point_to_str(p)
   return "x=" .. p.x .. ", y=" .. p.y
 end
 
--- Lifecycle
-function _init()
-  cls()
+function generate_points()
+  points = {}
+
   local max_num_retries = 5
   local max_num_loops = num_points * 5
   local current_num_loops = 0
@@ -96,7 +95,6 @@ function _init()
       -- Add to points table if valid
       if not too_close then
         add(points, new_point)
-        add(point_vectors, rnd_vec2(max_point_speed, max_point_speed, -max_point_speed, -max_point_speed))
       end
 
       -- Ensure point generation does not go on too long
@@ -115,6 +113,73 @@ function _init()
   end -- while
 end
 
+function generate_connections()
+  point_connections = {}
+
+  -- don't even try if there's no other points to compare
+  if (#points <= 1) then return end
+
+  local processed_points = {
+    points[flr(rnd(#points)) + 1],
+  }
+  -- pick a random starting point
+  local sanity_counter = 0
+  while #processed_points < #points do
+    -- find nearest point to processed_points
+    local nearest_distance = 0x7fff
+    local nearest_index = -1
+    local nearest_processed_index = -1
+    for i=1,#points do
+      local p_current = points[i]
+
+      -- ensure `current_point` is not in `processed_points`
+      local is_already_processed = false
+      for p_processed in all(processed_points) do
+        if (p_current == p_processed) then
+          is_already_processed = true
+        end
+      end
+      if (not is_already_processed) then
+        -- point is not yet processed
+        -- compare distance to all processed points
+        -- for p_processed in all(processed_points) do
+        for j=1,#processed_points do
+          local p_processed = processed_points[j]
+          local distance = point_distance(p_current, p_processed)
+          if (distance < nearest_distance) then
+            nearest_distance = distance
+            nearest_index = i
+            nearest_processed_index = j
+          end
+        end
+      end
+    end
+
+    -- sanity check
+    assert(nearest_index ~= -1, "could not generate connections. no nearest point?")
+
+    -- store connection between new point and processed point
+    add(point_connections, {
+      a = points[nearest_index],
+      b = processed_points[nearest_processed_index],
+    })
+    -- mark new point as processed
+    add(processed_points, points[nearest_index])
+
+    -- sanity check to prevent infinite loop
+    sanity_counter += 1
+    assert(sanity_counter < 200, "too many iterations trying to generate connections")
+  end
+end
+
+-- Lifecycle
+function _init()
+  cls()
+
+  generate_points()
+  generate_connections()
+end
+
 function _update60()
   if btn(⬅️) then
     camera_x -= camera_speed
@@ -129,11 +194,9 @@ function _update60()
     camera_y += camera_speed
   end
 
-  for i = 1,#points do
-    local vector = point_vectors[i]
-    points[i].x = (points[i].x + vector.x) % area_width
-    points[i].y = (points[i].y + vector.y) % area_height
-
+  if btnp(❎) then
+    generate_points()
+    generate_connections()
   end
 end
 
@@ -141,7 +204,6 @@ function _draw()
   cls()
 
   camera(camera_x, camera_y)
-
 
   -- draw background grid
   for x=0,area_width,grid_size do
@@ -154,18 +216,12 @@ function _draw()
   -- draw area outline
   rect(0, 0, area_width, area_height, COLOR.RED)
 
+  -- draw point connections
+  for connection in all(point_connections) do
+    line(connection.a.x, connection.a.y, connection.b.x, connection.b.y, COLOR.LIGHT_GREY)
+  end
   -- draw points
   for p in all(points) do
-    for p_other in all(points) do
-      if p ~= p_other then
-        if point_distance(p, p_other) < (point_dead_zone * 2) then
-          line(p.x, p.y, p_other.x, p_other.y, COLOR.LIGHT_GREY)
-        end
-      end
-    end
-
-    -- circ(p.x, p.y, point_dead_zone / 2, COLOR.DARK_GREY)
-    -- circ(p.x, p.y, point_dead_zone, COLOR.DARK_PURPLE)
     circ(p.x, p.y, 2, COLOR.RED)
   end
 
