@@ -12,7 +12,7 @@
       "program": "cmd.exe",
       "args": [
         "/c",
-        "%PICO8_ROOT%\\pico8.exe", "-home", "."
+        "%PICO8_ROOT%\\pico8.exe -home .",
       ],
       "cwd": "${workspaceFolder}",
     },
